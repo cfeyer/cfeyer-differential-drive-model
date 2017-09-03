@@ -57,13 +57,14 @@ class Differential_Drive:
 
    def drive(self, initial_coords, left_travel, right_travel):
       final_coords = initial_coords
+
       if(left_travel == right_travel): # stopped or driving straight
-         #print "   initial: " + str(initial_coords)
          final_coords.x = initial_coords.x + cos(initial_coords.hdg_rads) * float(left_travel)
          final_coords.y = initial_coords.y + sin(initial_coords.hdg_rads) * float(left_travel)
-         #print "   final: " + str(final_coords)
+
       elif(left_travel == -right_travel): # rotate in place
          final_coords.hdg_rads = right_travel / self.track_width + initial_coords.hdg_rads
+
       elif(left_travel == 0): # rotate about left wheel
          turn_angle_rads = right_travel/self.track_width
          lw = self.left_wheel_coords(initial_coords)
@@ -77,8 +78,24 @@ class Differential_Drive:
          final_coords.x = x2 + lw_x
          final_coords.y = y2 + lw_y
          final_coords.hdg_rads = initial_coords.hdg_rads + turn_angle_rads
+
+      elif(right_travel == 0): # rotate about right wheel
+         turn_angle_rads = -left_travel/self.track_width
+         rw = self.right_wheel_coords(initial_coords)
+         rw_x = rw.x
+         rw_y = rw.y
+         phi = turn_angle_rads
+         x1 = initial_coords.x - rw_x
+         y1 = initial_coords.y - rw_y
+         x2 = cos(phi)*x1-sin(phi)*y1
+         y2 = sin(phi)*x1+cos(phi)*y1
+         final_coords.x = x2 + rw_x
+         final_coords.y = y2 + rw_y
+         final_coords.hdg_rads = initial_coords.hdg_rads + turn_angle_rads
+
       else:
          raise Exception("Not implemented for this (left_travel, right_travel)")
+
       return final_coords
 
    def left_wheel_coords(self, p):
@@ -385,22 +402,26 @@ class Test_DD(Position_Heading_Coordinates_Test_Case):
       self.assertEqualPHC(dd1.drive(PHC(0.5,0,pi/2),0,pi/2), PHC(0,0.5,pi))
       self.assertEqualPHC(dd1.drive(PHC(0,0.5,pi),0,pi/2), PHC(-0.5,0,3*pi/2))
       self.assertEqualPHC(dd1.drive(PHC(-0.5,0,3*pi/2),0,pi/2), PHC(0,-0.5,2*pi))
+      self.assertEqualPHC(dd1.drive(PHC(0.5,0,pi/2),0,pi/4), PHC(sqrt(2)/4,sqrt(2)/4,3*pi/4))
 
       self.assertEqualPHC(dd1.drive(PHC(0+1,-0.5+2,0),0,pi/2), PHC(0.5+1,0+2,pi/2))
       self.assertEqualPHC(dd1.drive(PHC(0.5+3,0+4,pi/2),0,pi/2), PHC(0+3,0.5+4,pi))
       self.assertEqualPHC(dd1.drive(PHC(0+5,0.5+6,pi),0,pi/2), PHC(-0.5+5,0+6,3*pi/2))
       self.assertEqualPHC(dd1.drive(PHC(-0.5+7,0+8,3*pi/2),0,pi/2), PHC(0+7,-0.5+8,2*pi))
+      self.assertEqualPHC(dd1.drive(PHC(0.5+9,0+10,pi/2),0,pi/4), PHC(sqrt(2)/4+9,sqrt(2)/4+10,3*pi/4))
 
       dd2 = DD(2)
       self.assertEqualPHC(dd2.drive(PHC(0,-1,0),0,pi), PHC(1,0,pi/2))
       self.assertEqualPHC(dd2.drive(PHC(1,0,pi/2),0,pi), PHC(0,1,pi))
       self.assertEqualPHC(dd2.drive(PHC(0,1,pi),0,pi), PHC(-1,0,3*pi/2))
       self.assertEqualPHC(dd2.drive(PHC(-1,0,3*pi/2),0,pi), PHC(0,-1,2*pi))
+      self.assertEqualPHC(dd2.drive(PHC(1,0,pi/2),0,pi/2), PHC(sqrt(2)/2,sqrt(2)/2,3*pi/4))
 
       self.assertEqualPHC(dd2.drive(PHC(0+1,-1+2,0),0,pi), PHC(1+1,0+2,pi/2))
       self.assertEqualPHC(dd2.drive(PHC(1+3,0+4,pi/2),0,pi), PHC(0+3,1+4,pi))
       self.assertEqualPHC(dd2.drive(PHC(0+5,1+6,pi),0,pi), PHC(-1+5,0+6,3*pi/2))
       self.assertEqualPHC(dd2.drive(PHC(-1+7,0+8,3*pi/2),0,pi), PHC(0+7,-1+8,2*pi))
+      self.assertEqualPHC(dd2.drive(PHC(1+9,0+10,pi/2),0,pi/2), PHC(sqrt(2)/2+9,sqrt(2)/2+10,3*pi/4))
 
    def test_rotate_about_left_wheel_clockwise(self):
       dd1 = DD(1)
@@ -408,22 +429,80 @@ class Test_DD(Position_Heading_Coordinates_Test_Case):
       self.assertEqualPHC(dd1.drive(PHC(0.5,0,pi/2),0,-pi/2), PHC(0,-0.5,0))
       self.assertEqualPHC(dd1.drive(PHC(0,0.5,pi),0,-pi/2), PHC(0.5,0,pi/2))
       self.assertEqualPHC(dd1.drive(PHC(-0.5,0,3*pi/2),0,-pi/2), PHC(0,0.5,pi))
+      self.assertEqualPHC(dd1.drive(PHC(0.5,0,pi/2),0,-pi/4), PHC(sqrt(2)/4,-sqrt(2)/4,pi/4))
 
       self.assertEqualPHC(dd1.drive(PHC(0+1,-0.5+2,0),0,-pi/2), PHC(-0.5+1,0+2,-pi/2))
       self.assertEqualPHC(dd1.drive(PHC(0.5+3,0+4,pi/2),0,-pi/2), PHC(0+3,-0.5+4,0))
       self.assertEqualPHC(dd1.drive(PHC(0+5,0.5+6,pi),0,-pi/2), PHC(0.5+5,0+6,pi/2))
       self.assertEqualPHC(dd1.drive(PHC(-0.5+7,0+8,3*pi/2),0,-pi/2), PHC(0+7,0.5+8,pi))
+      self.assertEqualPHC(dd1.drive(PHC(0.5+9,0+10,pi/2),0,-pi/4), PHC(sqrt(2)/4+9,-sqrt(2)/4+10,pi/4))
 
       dd2 = DD(2)
       self.assertEqualPHC(dd2.drive(PHC(0,-1,0),0,-pi), PHC(-1,0,-pi/2))
       self.assertEqualPHC(dd2.drive(PHC(1,0,pi/2),0,-pi), PHC(0,-1,0))
       self.assertEqualPHC(dd2.drive(PHC(0,1,pi),0,-pi), PHC(1,0,pi/2))
       self.assertEqualPHC(dd2.drive(PHC(-1,0,3*pi/2),0,-pi), PHC(0,1,pi))
+      self.assertEqualPHC(dd2.drive(PHC(1,0,pi/2),0,-pi/2), PHC(sqrt(2)/2,-sqrt(2)/2,pi/4))
 
       self.assertEqualPHC(dd2.drive(PHC(0+1,-1+2,0),0,-pi), PHC(-1+1,0+2,-pi/2))
       self.assertEqualPHC(dd2.drive(PHC(1+3,0+4,pi/2),0,-pi), PHC(0+3,-1+4,0))
       self.assertEqualPHC(dd2.drive(PHC(0+5,1+6,pi),0,-pi), PHC(1+5,0+6,pi/2))
       self.assertEqualPHC(dd2.drive(PHC(-1+7,0+8,3*pi/2),0,-pi), PHC(0+7,1+8,pi))
+      self.assertEqualPHC(dd2.drive(PHC(1+9,0+10,pi/2),0,-pi/2), PHC(sqrt(2)/2+9,-sqrt(2)/2+10,pi/4))
+
+   def test_rotate_about_right_wheel_clockwise(self):
+      dd1 = DD(1)
+      self.assertEqualPHC(dd1.drive(PHC(0,0.5,0),pi/2,0), PHC(0.5,0,-pi/2))
+      self.assertEqualPHC(dd1.drive(PHC(-0.5,0,pi/2),pi/2,0), PHC(0,0.5,0))
+      self.assertEqualPHC(dd1.drive(PHC(0,-0.5,pi),pi/2,0), PHC(-0.5,0,pi/2))
+      self.assertEqualPHC(dd1.drive(PHC(0.5,0,-pi/2),pi/2,0), PHC(0,-0.5,-pi))
+      self.assertEqualPHC(dd1.drive(PHC(-0.5,0,pi/2),pi/4,0), PHC(-sqrt(2)/4,sqrt(2)/4,pi/4))
+
+      self.assertEqualPHC(dd1.drive(PHC(0+1,0+2.5,0),pi/2,0), PHC(0.5+1,0+2,-pi/2))
+      self.assertEqualPHC(dd1.drive(PHC(-0.5+3,0+4,pi/2),pi/2,0), PHC(0+3,0+4.5,0))
+      self.assertEqualPHC(dd1.drive(PHC(0+5,-0.5+6,pi),pi/2,0), PHC(-0.5+5,0+6,pi/2))
+      self.assertEqualPHC(dd1.drive(PHC(0.5+7,0+8,-pi/2),pi/2,0), PHC(0+7,-0.5+8,-pi))
+      self.assertEqualPHC(dd1.drive(PHC(-0.5+9,0+10,pi/2),pi/4,0), PHC(-sqrt(2)/4+9,sqrt(2)/4+10,pi/4))
+
+      dd2 = DD(2)
+      self.assertEqualPHC(dd2.drive(PHC(0,1,0),pi,0), PHC(1,0,-pi/2))
+      self.assertEqualPHC(dd2.drive(PHC(-1,0,pi/2),pi,0), PHC(0,1,0))
+      self.assertEqualPHC(dd2.drive(PHC(0,-1,pi),pi,0), PHC(-1,0,pi/2))
+      self.assertEqualPHC(dd2.drive(PHC(1,0,-pi/2),pi,0), PHC(0,-1,-pi))
+      self.assertEqualPHC(dd2.drive(PHC(-1,0,pi/2),pi/2,0), PHC(-sqrt(2)/2,sqrt(2)/2,pi/4))
+
+      self.assertEqualPHC(dd2.drive(PHC(0+1,1+2,0),pi,0), PHC(1+1,0+2,-pi/2))
+      self.assertEqualPHC(dd2.drive(PHC(-1+3,0+4,pi/2),pi,0), PHC(0+3,1+4,0))
+      self.assertEqualPHC(dd2.drive(PHC(0+5,-1+6,pi),pi,0), PHC(-1+5,0+6,pi/2))
+      self.assertEqualPHC(dd2.drive(PHC(1+7,0+8,-pi/2),pi,0), PHC(0+7,-1+8,-pi))
+      self.assertEqualPHC(dd2.drive(PHC(-1+9,0+10,pi/2),pi/2,0), PHC(-sqrt(2)/2+9,sqrt(2)/2+10,pi/4))
+
+   def test_rotate_about_right_wheel_counterclockwise(self):
+      dd1 = DD(1)
+      self.assertEqualPHC(dd1.drive(PHC(0,0.5,0),-pi/2,0), PHC(-0.5,0,pi/2))
+      self.assertEqualPHC(dd1.drive(PHC(-0.5,0,pi/2),-pi/2,0), PHC(0,-0.5,pi))
+      self.assertEqualPHC(dd1.drive(PHC(0,-0.5,pi),-pi/2,0), PHC(0.5,0,3*pi/2))
+      self.assertEqualPHC(dd1.drive(PHC(0.5,0,-pi/2),-pi/2,0), PHC(0,0.5,0))
+      self.assertEqualPHC(dd1.drive(PHC(-0.5,0,pi/2),-pi/4,0), PHC(-sqrt(2)/4,-sqrt(2)/4,3*pi/4))
+
+      self.assertEqualPHC(dd1.drive(PHC(0+1,0.5+2,0),-pi/2,0), PHC(-0.5+1,0+2,pi/2))
+      self.assertEqualPHC(dd1.drive(PHC(-0.5+3,0+4,pi/2),-pi/2,0), PHC(0+3,-0.5+4,pi))
+      self.assertEqualPHC(dd1.drive(PHC(0+5,-0.5+6,pi),-pi/2,0), PHC(0.5+5,0+6,3*pi/2))
+      self.assertEqualPHC(dd1.drive(PHC(0.5+7,0+8,-pi/2),-pi/2,0), PHC(0+7,0.5+8,0))
+      self.assertEqualPHC(dd1.drive(PHC(-0.5+9,0+10,pi/2),-pi/4,0), PHC(-sqrt(2)/4+9,-sqrt(2)/4+10,3*pi/4))
+
+      dd2 = DD(2)
+      self.assertEqualPHC(dd2.drive(PHC(0,1,0),-pi,0), PHC(-1,0,pi/2))
+      self.assertEqualPHC(dd2.drive(PHC(-1,0,pi/2),-pi,0), PHC(0,-1,pi))
+      self.assertEqualPHC(dd2.drive(PHC(0,-1,pi),-pi,0), PHC(1,0,3*pi/2))
+      self.assertEqualPHC(dd2.drive(PHC(1,0,-pi/2),-pi,0), PHC(0,1,0))
+      self.assertEqualPHC(dd2.drive(PHC(-1,0,pi/2),-pi/2,0), PHC(-sqrt(2)/2,-sqrt(2)/2,3*pi/4))
+
+      self.assertEqualPHC(dd2.drive(PHC(0+1,1+2,0),-pi,0), PHC(-1+1,0+2,pi/2))
+      self.assertEqualPHC(dd2.drive(PHC(-1+3,0+4,pi/2),-pi,0), PHC(0+3,-1+4,pi))
+      self.assertEqualPHC(dd2.drive(PHC(0+5,-1+6,pi),-pi,0), PHC(1+5,0+6,3*pi/2))
+      self.assertEqualPHC(dd2.drive(PHC(1+7,0+8,-pi/2),-pi,0), PHC(0+7,1+8,0))
+      self.assertEqualPHC(dd2.drive(PHC(-1+9,0+10,pi/2),-pi/2,0), PHC(-sqrt(2)/2+9,-sqrt(2)/2+10,3*pi/4))
 
 if __name__ == '__main__':
    unittest.main()
