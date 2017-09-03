@@ -31,12 +31,12 @@ class Position_Heading_Coordinates:
    def __init__(self, x0=0, y0=0, heading0_rads=0):
       self.x = float(x0)
       self.y = float(y0)
-      self.heading_rads = float(heading0_rads) # 0 = east
+      self.hdg_rads = float(heading0_rads) # 0 = east
 
    def __eq__(self, other):
       dx = other.x - self.x
       dy = other.y - self.y
-      dh = other.heading_rads - self.heading_rads
+      dh = other.hdg_rads - self.hdg_rads
       #print "   self: " + str(self)
       #print "   other: " + str(other)
       #print "   dx=" + str(dx) + ", dy=" + str(dy) + ", dh=" + str(dh)
@@ -47,7 +47,7 @@ class Position_Heading_Coordinates:
       return not self.__eq__(other)
 
    def __str__(self):
-      return "x=" + str(self.x) + ", y=" + str(self.y) + ", h=" + str(self.heading_rads)
+      return "x=" + str(self.x) + ", y=" + str(self.y) + ", h=" + str(self.hdg_rads)
 
 
 class Differential_Drive:
@@ -59,11 +59,11 @@ class Differential_Drive:
       final_coords = initial_coords
       if(left_travel == right_travel): # stopped or driving straight
          #print "   initial: " + str(initial_coords)
-         final_coords.x = initial_coords.x + cos(initial_coords.heading_rads) * float(left_travel)
-         final_coords.y = initial_coords.y + sin(initial_coords.heading_rads) * float(left_travel)
+         final_coords.x = initial_coords.x + cos(initial_coords.hdg_rads) * float(left_travel)
+         final_coords.y = initial_coords.y + sin(initial_coords.hdg_rads) * float(left_travel)
          #print "   final: " + str(final_coords)
       elif(left_travel == -right_travel): # rotate in place
-         final_coords.heading_rads = right_travel / self.track_width + initial_coords.heading_rads
+         final_coords.hdg_rads = right_travel / self.track_width + initial_coords.hdg_rads
       elif(left_travel == 0): # rotate about left wheel
          turn_angle_rads = right_travel/self.track_width
          lw = self.left_wheel_coords(initial_coords)
@@ -76,21 +76,21 @@ class Differential_Drive:
          y2 = sin(phi)*x1+cos(phi)*y1
          final_coords.x = x2 + lw_x
          final_coords.y = y2 + lw_y
-         final_coords.heading_rads = initial_coords.heading_rads + turn_angle_rads
+         final_coords.hdg_rads = initial_coords.hdg_rads + turn_angle_rads
       else:
          raise Exception("Not implemented for this (left_travel, right_travel)")
       return final_coords
 
    def left_wheel_coords(self, p):
-      x = -(self.track_width/2.0) * sin(p.heading_rads) + p.x
-      y = (self.track_width/2.0) * cos(p.heading_rads) + p.y
-      h = p.heading_rads
+      x = -(self.track_width/2.0) * sin(p.hdg_rads) + p.x
+      y = (self.track_width/2.0) * cos(p.hdg_rads) + p.y
+      h = p.hdg_rads
       return Position_Heading_Coordinates(x,y,h)
 
    def right_wheel_coords(self, p):
-      x = (self.track_width/2.0) * sin(p.heading_rads) + p.x
-      y = -(self.track_width/2.0) * cos(p.heading_rads) + p.y
-      h = p.heading_rads
+      x = (self.track_width/2.0) * sin(p.hdg_rads) + p.x
+      y = -(self.track_width/2.0) * cos(p.hdg_rads) + p.y
+      h = p.hdg_rads
       return Position_Heading_Coordinates(x,y,h)
 
 
@@ -104,13 +104,13 @@ class Test_PHC(unittest.TestCase):
       coords = PHC()
       self.assertEqual(coords.x, 0)
       self.assertEqual(coords.y, 0)
-      self.assertEqual(coords.heading_rads, 0)
+      self.assertEqual(coords.hdg_rads, 0)
 
    def test_custom_ctor(self):
       coords = PHC(1,2,3)
       self.assertEqual(coords.x, 1)
       self.assertEqual(coords.y, 2)
-      self.assertEqual(coords.heading_rads, 3)
+      self.assertEqual(coords.hdg_rads, 3)
 
    def test_default_objects_equal(self):
       coords_1 = PHC()
@@ -148,7 +148,7 @@ class Position_Heading_Coordinates_Test_Case(unittest.TestCase):
    def assertEqualPHC(self, actual, expected):
       x_error = abs(actual.x - expected.x)
       y_error = abs(actual.y - expected.y)
-      heading_error = abs(actual.heading_rads - expected.heading_rads)
+      heading_error = abs(actual.hdg_rads - expected.hdg_rads)
       tol = 1.0e-14
       msg = "expected: " + str(expected) + "\n" + \
             "actual: " + str(actual)
@@ -161,7 +161,7 @@ class Position_Heading_Coordinates_Test_Case(unittest.TestCase):
          msg += "\nassertion fail: y"
       if heading_error > tol:
          is_fail = True
-         msg += "\nassertion fail: heading_rads"
+         msg += "\nassertion fail: hdg_rads"
 
       if is_fail:
 	self.fail(msg)
