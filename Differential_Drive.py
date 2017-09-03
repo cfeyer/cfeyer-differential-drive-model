@@ -409,5 +409,21 @@ class Test_DD(Position_Heading_Coordinates_Test_Case):
       self.assertEqualPHC(dd1.drive(PHC(0,0.5,pi),0,-pi/2), PHC(0.5,0,pi/2))
       self.assertEqualPHC(dd1.drive(PHC(-0.5,0,3*pi/2),0,-pi/2), PHC(0,0.5,pi))
 
+      self.assertEqualPHC(dd1.drive(PHC(0+1,-0.5+2,0),0,-pi/2), PHC(-0.5+1,0+2,-pi/2))
+      self.assertEqualPHC(dd1.drive(PHC(0.5+3,0+4,pi/2),0,-pi/2), PHC(0+3,-0.5+4,0))
+      self.assertEqualPHC(dd1.drive(PHC(0+5,0.5+6,pi),0,-pi/2), PHC(0.5+5,0+6,pi/2))
+      self.assertEqualPHC(dd1.drive(PHC(-0.5+7,0+8,3*pi/2),0,-pi/2), PHC(0+7,0.5+8,pi))
+
+      dd2 = DD(2)
+      self.assertEqualPHC(dd2.drive(PHC(0,-1,0),0,-pi), PHC(-1,0,-pi/2))
+      self.assertEqualPHC(dd2.drive(PHC(1,0,pi/2),0,-pi), PHC(0,-1,0))
+      self.assertEqualPHC(dd2.drive(PHC(0,1,pi),0,-pi), PHC(1,0,pi/2))
+      self.assertEqualPHC(dd2.drive(PHC(-1,0,3*pi/2),0,-pi), PHC(0,1,pi))
+
+      self.assertEqualPHC(dd2.drive(PHC(0+1,-1+2,0),0,-pi), PHC(-1+1,0+2,-pi/2))
+      self.assertEqualPHC(dd2.drive(PHC(1+3,0+4,pi/2),0,-pi), PHC(0+3,-1+4,0))
+      self.assertEqualPHC(dd2.drive(PHC(0+5,1+6,pi),0,-pi), PHC(1+5,0+6,pi/2))
+      self.assertEqualPHC(dd2.drive(PHC(-1+7,0+8,3*pi/2),0,-pi), PHC(0+7,1+8,pi))
+
 if __name__ == '__main__':
    unittest.main()
